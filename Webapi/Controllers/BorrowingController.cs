@@ -8,6 +8,8 @@ using Infrastructure.Interface;
 
 namespace Webapi.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
 public class BorrowingController
 {
     private readonly IBorrowingService borrowingService = new BorrowingService();
@@ -18,7 +20,7 @@ public class BorrowingController
         return await borrowingService.GetAllBorrowingAsync();
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<Borrowing?> GetBorrowingByIdAsync(int id)
     {
         return await borrowingService.GetBorrowingByIdAsync(id);
@@ -36,7 +38,7 @@ public class BorrowingController
         return await borrowingService.UpdateBorrowingAsync(borrowing);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<string> DeleteBorrowingAsync(int id)
     {
         return await borrowingService.DeleteBorrowingAsync(id);

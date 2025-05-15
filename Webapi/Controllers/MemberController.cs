@@ -18,7 +18,7 @@ public class MemberController
     {
         return await memberService.GetAllMemberAsync();
     }
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<Member?> GetMemberByIdAsync(int id)
     {
         return await memberService.GetMemberByIdAsync(id);
@@ -33,7 +33,7 @@ public class MemberController
     {
         return await memberService.UpdateMemberAsync(member);
     }
-    [HttpDelete]
+    [HttpDelete("{id:int}")]
     public async Task<string> DeleteMemberAsync(int id)
     {
         return await memberService.DeleteMemberAsync(id);

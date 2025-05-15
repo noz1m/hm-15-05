@@ -18,8 +18,7 @@ public class BookController
     {
         return await bookService.GetAllBookAsync();
     }
-
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<Book?> GetBookByIdAsync(int id)
     {
         return await bookService.GetBookByIdAsync(id);
@@ -37,7 +36,7 @@ public class BookController
         return await bookService.UpdateBookAsync(book);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<string> DeleteBookAsync(int id)
     {
         return await bookService.DeleteBookAsync(id);

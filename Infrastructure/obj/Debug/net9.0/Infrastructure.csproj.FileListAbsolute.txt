@@ -13,3 +13,4 @@
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Infrastructure/obj/Debug/net9.0/refint/Infrastructure.dll
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Infrastructure/obj/Debug/net9.0/Infrastructure.pdb
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Infrastructure/obj/Debug/net9.0/ref/Infrastructure.dll
+/Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Infrastructure/obj/Debug/net9.0/Infrastructure.sourcelink.json

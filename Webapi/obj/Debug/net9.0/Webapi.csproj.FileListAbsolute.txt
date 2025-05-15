@@ -40,3 +40,4 @@
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Webapi/obj/Debug/net9.0/Webapi.pdb
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Webapi/obj/Debug/net9.0/Webapi.genruntimeconfig.cache
 /Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Webapi/obj/Debug/net9.0/ref/Webapi.dll
+/Users/nozimjonqozievgmail.com/Desktop/DotNet/Dapper/classtask/classtask-6/Webapi/obj/Debug/net9.0/Webapi.sourcelink.json
