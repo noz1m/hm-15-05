@@ -49,12 +49,12 @@ public class MemberService(DataContext context) : IMemberService
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select b.* from books b
         join (
-            select book_id, count(*) as borrow_count
+            select book_id, count(*) as borrowCount
             from borrowings
-            group by book_id
+            group by bookId
             order by borrow_count desc
             limit 1
-        ) as top_book on b.id = top_book.book_id;";
+        ) as top_book on b.id = topBook.bookId;";
         var result = await connection.QuerySingleOrDefaultAsync<Book>(sql);
         return result;
     }
@@ -62,7 +62,7 @@ public class MemberService(DataContext context) : IMemberService
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select m.* from members m
-        join borrowings br on m.id = br.member_id
+        join borrowings br on m.id = br.memberId
         where br.returnDate > br.dueDate
            or (br.returnDate is null and br.dueDate < now())
         order by br.dueDate asc

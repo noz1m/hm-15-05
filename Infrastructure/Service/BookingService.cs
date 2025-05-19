@@ -50,11 +50,11 @@ public class BookingService(DataContext context) : IBookService
         var sql = @"
         select b.* from books b
         join (
-            select book_id, count(*) as borrow_count from borrowings
-            group by book_id
-            order by borrow_count desc
+            select bookId, count(*) as borrowCount from borrowings
+            group by bookId
+            order by borrowCount desc
             limit 1
-        ) as top_book on b.id = top_book.book_id;";
+        ) as top_book on b.id = top_book.bookId;";
         var result = await connection.QuerySingleOrDefaultAsync<Book>(sql);
         return result == null ? null : result;
     }
@@ -62,8 +62,8 @@ public class BookingService(DataContext context) : IBookService
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select b.* from books b
-        join borrowings br on b.id = br.book_id
-        where br.return_date is null;";
+        join borrowings br on b.id = br.bookId
+        where br.returnDate is null;";
         var books = await connection.QueryAsync<Book>(sql);
         return books.ToList();
     }
@@ -72,10 +72,10 @@ public class BookingService(DataContext context) : IBookService
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
         select b.* from books b
-        where b.total_copies < (
+        where b.totalCopies < (
             select count(*)
             from borrowings br
-            where br.book_id = b.id and br.return_date is null);";
+            where br.bookId = b.id and br.returnDate is null);";
         var books = await connection.QueryAsync<Book>(sql);
         return books.ToList();
     }

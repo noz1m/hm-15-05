@@ -93,32 +93,32 @@ public class BorrowingService(DataContext context) : IBorrowingService
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = "select count(*) from borrowings;";
-        int total = await connection.ExecuteScalarAsync<int>(sql);
-        return total;
+        int result = await connection.ExecuteScalarAsync<int>(sql);
+        return result;
     }
     public async Task<decimal> GetAverageFineAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = "select avg(fine) from borrowings where fine is not null;";
-        var averageFine = await connection.ExecuteScalarAsync<decimal?>(sql);
-        if (averageFine.HasValue)
-            return averageFine.Value;
+        var result = await connection.ExecuteScalarAsync<decimal?>(sql);
+        if (result.HasValue)
+            return result.Value;
         else return 0;
     }
     public async Task<int> GetNeverBorrowedBooksCountAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select count(*) from books b
-        join borrowings br on b.id = br.book_id
+        join borrowings br on b.id = br.bookId
         where br.id is null;";
-        int result = await connection.ExecuteScalarAsync<int>(sql);
+        var result = await connection.ExecuteScalarAsync<int>(sql);
         return result;
     }
     public async Task<int> GetActiveBorrowersCountAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         const string sql = "select count(distinct memberId) from borrowings;";
-        int result = await connection.ExecuteScalarAsync<int>(sql);
+        var result = await connection.ExecuteScalarAsync<int>(sql);
         return result;
     }
     public async Task<decimal> GetTotalFinesAsync()
