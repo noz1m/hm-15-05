@@ -9,10 +9,8 @@ namespace Webapi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MemberController
+public class MemberController(IMemberService memberService)
 {
-    private readonly IMemberService memberService = new MemberService();
-
     [HttpGet]
     public async Task<List<Member>> GetMembersAsync()
     {
@@ -37,5 +35,25 @@ public class MemberController
     public async Task<string> DeleteMemberAsync(int id)
     {
         return await memberService.DeleteMemberAsync(id);
+    }
+    [HttpGet("GetMostBorrowedBook")]
+    public async Task<Book?> GetMostBorrowedBookAsync()
+    {
+        return await memberService.GetMostBorrowedBookAsync();
+    }
+    [HttpGet("GetFirstMemberWithOverdueReturns")]
+    public async Task<Member?> GetFirstMemberWithOverdueReturnsAsync()
+    {
+        return await memberService.GetFirstMemberWithOverdueReturnsAsync();
+    }
+    [HttpGet("GetTop5Borrowers")]
+    public async Task<List<Member>> GetTop5BorrowersAsync()
+    {
+        return await memberService.GetTop5BorrowersAsync();
+    }
+    [HttpGet("GetMembersWithFines")]
+    public async Task<List<Member>> GetMembersWithFinesAsync()
+    {
+        return await memberService.GetMembersWithFinesAsync();
     }
 } 

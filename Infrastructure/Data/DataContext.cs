@@ -4,8 +4,8 @@ namespace Infrastructure.Data;
 
 public class DataContext
 {
-    private const string connectionString = "Host=localhost;Port=5432;Database=cw-14-05;Username=postgres;Password=1234";
-    
+    private const string connectionString = "Server=localhost;Port=5433;Database=cw-14-05;User Id=postgres;Password=nozimjanov";
+
     public Task<NpgsqlConnection> GetNpgsqlConnection()
     {
         return Task.FromResult(new NpgsqlConnection(connectionString));

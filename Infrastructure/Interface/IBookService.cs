@@ -10,4 +10,8 @@ public interface IBookService
     public Task<string> CreateBookAsync(Book book);
     public Task<string> UpdateBookAsync(Book book);
     public Task<string> DeleteBookAsync(int id);
+    public Task<Book?> GetMostBorrowedBookAsync();
+    public Task<List<Book>> GetBorrowedBooksAsync();
+    public Task<List<Book>> GetUnavailableBooksAsync();
+    public Task<string?> GetMostPopularGenreAsync();
 }

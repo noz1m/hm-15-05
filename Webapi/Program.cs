@@ -1,7 +1,15 @@
+using Infrastructure.Data;
+using Infrastructure.Interface;
+using Infrastructure.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<DataContext, DataContext>(); 
+builder.Services.AddScoped<IBookService, BookingService>(); 
+builder.Services.AddScoped<IMemberService, MemberService>();
+builder.Services.AddScoped<IBorrowingService, BorrowingService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

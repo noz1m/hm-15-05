@@ -9,4 +9,8 @@ public interface IMemberService
     public Task<string> CreateMemberAsync(Member member);
     public Task<string> UpdateMemberAsync(Member member);
     public Task<string> DeleteMemberAsync(int id);
+    public Task<Book?> GetMostBorrowedBookAsync();
+    public Task<Member?> GetFirstMemberWithOverdueReturnsAsync();
+    public Task<List<Member>> GetTop5BorrowersAsync();
+    public Task<List<Member>> GetMembersWithFinesAsync();
 }

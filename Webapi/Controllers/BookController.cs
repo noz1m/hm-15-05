@@ -9,10 +9,8 @@ namespace Webapi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BookController
+public class BookController(IBookService bookService)
 {
-    private readonly IBookService bookService = new BookingService();
-
     [HttpGet]
     public async Task<List<Book>> GetBooksAsync()
     {
@@ -23,22 +21,39 @@ public class BookController
     {
         return await bookService.GetBookByIdAsync(id);
     }
-    
     [HttpPost]
     public async Task<string> CreateBookAsync(Book book)
     {
         return await bookService.CreateBookAsync(book);
     }
-
     [HttpPut]
     public async Task<string> UpdateBookAsync(Book book)
     {
         return await bookService.UpdateBookAsync(book);
     }
-
     [HttpDelete("{id:int}")]
     public async Task<string> DeleteBookAsync(int id)
     {
         return await bookService.DeleteBookAsync(id);
+    }
+    [HttpGet("GetMostBorrowedBook")]
+    public async Task<Book?> GetMostBorrowedBookAsync()
+    {
+        return await bookService.GetMostBorrowedBookAsync();
+    }
+    [HttpGet(" GetBorrowedBooks")]
+    public async Task<List<Book>> GetBorrowedBooksAsync()
+    {
+        return await bookService.GetBorrowedBooksAsync();
+    }
+    [HttpGet("GetUnavailableBooks")]
+    public async Task<List<Book>> GetUnavailableBooksAsync()
+    {
+        return await bookService.GetUnavailableBooksAsync();
+    }
+    [HttpGet("GetMostPopularGenre")]
+    public async Task<string> GetMostPopularGenreAsync()
+    {
+        return await bookService.GetMostPopularGenreAsync();
     }
 }
