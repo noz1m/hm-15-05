@@ -1,62 +1,72 @@
 using Dapper;
+using Domain.ApiResponse;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interface;
+using System.Net;
 
 namespace Infrastructure.Service;
 
 public class BorrowingService(DataContext context) : IBorrowingService
 {
-    public async Task<List<Borrowing>> GetAllBorrowingAsync()
+    public async Task<Response<List<Borrowing>>> GetAllBorrowingAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from borrowings";
         var result = await connection.QueryAsync<Borrowing>(sql);
-        return result.ToList();
+        if (result == null)
+        {
+            return new Response<List<Borrowing>>("Borrowings not found", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Borrowing>>(result.ToList(), "Borrowings found");
     }
-    public async Task<Borrowing?> GetBorrowingByIdAsync(int memberId)
+    public async Task<Response<Borrowing>> GetBorrowingByIdAsync(int memberId)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from borrowings where memberId = @memberId";
         var result = await connection.QueryFirstOrDefaultAsync<Borrowing>(sql, new { memberId });
-        return result == null ? null : result;
+        if (result == null)
+        {
+            return new Response<Borrowing>("Borrowing not founded", HttpStatusCode.NotFound);
+        }
+        return new Response<Borrowing>(result,"Borrowing founded");
     }
-    public async Task<string> CreateBorrowingAsync(Borrowing borrowing)
+    public async Task<Response<string>> CreateBorrowingAsync(Borrowing borrowing)
     {
         using var connection = await context.GetNpgsqlConnection();
         var bookCommand = @"select * from books where id = @id";
         var book = await connection.QueryFirstOrDefaultAsync<Book>(bookCommand, new { borrowing.BookId });
         if (book == null)
         {
-            return "Book not found";
+            return new Response<string>("Book not found",HttpStatusCode.NotFound);
         }
         if (book.AvailableCopies <= 0)
         {
-            return "Book is not available";
+            return new Response<string>("Book is not available", HttpStatusCode.NotFound);
         }
         if (borrowing.BorrowDate >= borrowing.DueDate)
         {
-            return "Borrow date must be before due date";
+            return new Response<string>("Borrow date must be before due date", HttpStatusCode.BadRequest);
         }
         var sql = @"insert into borrowings (bookId,memberId,borrowDate,returnDate,dueDate,fine)
                     values (@bookId,@memberId,@borrowDate,@returnDate,@dueDate,@fine)";
         var result = await connection.ExecuteAsync(sql, borrowing);
         if (result == 0)
         {
-            return "Failed to create borrowing";
+            return new Response<string>("Failed to create borrowing", HttpStatusCode.BadRequest);
         }
         var updateBookCommand = @"update books set avalaibleCopies = availableCopies - 1 where id = @id";
         await connection.ExecuteAsync(updateBookCommand, new { borrowing.BookId });
-        return "Borrowing created successfully";
+        return new Response<string>("Successfully created borrowing", HttpStatusCode.Created);
     }
-    public async Task<string> ReturnBookAsync(int borrowingId)
+    public async Task<Response<string>> ReturnBookAsync(int borrowingId)
     {
         using var connection = await context.GetNpgsqlConnection();
         var borrowingComand = @"select * from borrowings where id = @id";
         var borrowing = await connection.QueryFirstOrDefaultAsync<Borrowing>(borrowingComand, new { borrowingId });
         if (borrowing == null)
         {
-            return "Borrowing not found";
+            return new Response<string>("Borrowing not found", HttpStatusCode.NotFound);
         }
         borrowing.ReturnDate = DateTime.Now;
         if (borrowing.ReturnDate > borrowing.DueDate)
@@ -68,76 +78,104 @@ public class BorrowingService(DataContext context) : IBorrowingService
         var result = await connection.ExecuteAsync(updateBorrowingCommanf, borrowing);
         if (result == 0)
         {
-            return "Failed to return book";
+            return new Response<string>("Failed to return book", HttpStatusCode.BadRequest);
         }
         var updateBookCommand = @"update books set availableCopies = availableCopies + 1 where id = @id";
         await connection.ExecuteAsync(updateBookCommand, new { borrowing.BookId });
-        return "Book returned successfully";
+        return new Response<string>(null,"Successfully returned book");
     }
-    public async Task<string> UpdateBorrowingAsync(Borrowing borrowing)
+    public async Task<Response<string>> UpdateBorrowingAsync(Borrowing borrowing)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"update borrowings set bookId=@bookId, memberId=@memberId, borrowDate=@borrowDate, returnDate=@returnDate, dueDate=@dueDate, fine=@fine 
                     where id=@id";
         var result = await connection.ExecuteAsync(sql, borrowing);
-        return result > 0 ? "Borrowing updated successfully" : "Failed to update borrowing";
+        if (result == 0)
+        {
+            return new Response<string>("Failed to update borrowing", HttpStatusCode.BadRequest);
+        }
+        return new Response<string>(null, "Successfully updated borrowing");
     }
-    public async Task<string> DeleteBorrowingAsync(int id)
+    public async Task<Response<string>> DeleteBorrowingAsync(int id)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"delete from borrowings where id = @id";
         var result = await connection.ExecuteAsync(sql, new { id });
-        return result > 0 ? "Borrowing deleted successfully" : "Failed to delete borrowing";
+        if (result == 0)
+        {
+            return new Response<string>("Failed to delete borrowing", HttpStatusCode.BadRequest);
+        }
+        return new Response<string>(null,"Successfully deleted borrowing");
     }
-    public async Task<int> GetTotalBorrowedBooksAsync()
+    public async Task<Response<int>> GetTotalBorrowedBooksAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = "select count(*) from borrowings;";
         int result = await connection.ExecuteScalarAsync<int>(sql);
-        return result;
+        if (result == 0)
+        {
+            return new Response<int>("Borrowings not found", HttpStatusCode.NotFound);
+        }
+        return new Response<int>(result, "Borrowings found");
     }
-    public async Task<decimal> GetAverageFineAsync()
+    public async Task<Response<decimal>> GetAverageFineAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = "select avg(fine) from borrowings where fine is not null;";
         var result = await connection.ExecuteScalarAsync<decimal?>(sql);
-        if (result.HasValue)
-            return result.Value;
-        else return 0;
+        if (result == null)
+        {
+            return new Response<decimal>("Average fine not found", HttpStatusCode.NotFound);
+        }
+        return new Response<decimal>(decimal.Round(result.Value, 2), "Average fine found");
     }
-    public async Task<int> GetNeverBorrowedBooksCountAsync()
+    public async Task<Response<int>> GetNeverBorrowedBooksCountAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select count(*) from books b
         join borrowings br on b.id = br.bookId
         where br.id is null;";
         var result = await connection.ExecuteScalarAsync<int>(sql);
-        return result;
+        if (result == 0)
+        {
+            return new Response<int>("Never borrowed books not found", HttpStatusCode.NotFound);
+        }
+        return new Response<int>(result, "Never borrowed books found");
     }
-    public async Task<int> GetActiveBorrowersCountAsync()
+    public async Task<Response<int>> GetActiveBorrowersCountAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         const string sql = "select count(distinct memberId) from borrowings;";
         var result = await connection.ExecuteScalarAsync<int>(sql);
-        return result;
+        if (result == 0)
+        {
+            return new Response<int>("Active borrowers not found", HttpStatusCode.NotFound);
+        }
+        return new Response<int>(result, "Active borrowers found");
     }
-    public async Task<decimal> GetTotalFinesAsync()
+    public async Task<Response<decimal>> GetTotalFinesAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = "select sum(fine) from borrowings;";
         var result = await connection.QuerySingleOrDefaultAsync<decimal?>(sql);
-        if (result.HasValue)
-            return result.Value;
-        else return 0;
+        if (result == null)
+        {
+            return new Response<decimal>("Total fines not found", HttpStatusCode.NotFound);
+        }
+        return new Response<decimal>(decimal.Round(result.Value, 2), "Total fines found");
     }
-    public async Task<int> GetCountOfLateReturnsAsync()
+    public async Task<Response<int>> GetCountOfLateReturnsAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
         select count(*) from borrowings 
         where returnDate > dueDate; ";
         var result = await connection.ExecuteScalarAsync<int>(sql);
-        return result;
+        if (result == 0)
+        {
+            return new Response<int>("Late returns not found", HttpStatusCode.NotFound);
+        }
+        return new Response<int>(result,"Late returns found");
     }
 }
 
@@ -215,3 +253,4 @@ public class BorrowingService(DataContext context) : IBorrowingService
 //     using var connection = await context.GetNpgsqlConnection();
 //     var 
 // }
+

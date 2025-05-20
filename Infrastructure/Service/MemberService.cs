@@ -1,50 +1,72 @@
 using Dapper;
+using Domain.ApiResponse;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Interface;
+using System.Net; 
 
 namespace Infrastructure.Service;
 
 public class MemberService(DataContext context) : IMemberService
 {
-    public async Task<List<Member>> GetAllMemberAsync()
+    public async Task<Response<List<Member>>> GetAllMemberAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from members";
         var result = await connection.QueryAsync<Member>(sql);
-        return result.ToList();
+        if (result == null)
+        {
+            return new Response<List<Member>>("Members not found", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Member>>(result.ToList(), "Members found");
     }
-    public async Task<Member?> GetMemberByIdAsync(int id)
+    public async Task<Response<Member>> GetMemberByIdAsync(int id)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from members where id = @id";
         var result = await connection.QueryFirstOrDefaultAsync<Member>(sql, new { id });
-        return result == null ? null : result;
+        if (result == null)
+        {
+            return new Response<Member>("Member not found", HttpStatusCode.NotFound);
+        }
+        return new Response<Member>(result, "Member found");
     }
-    public async Task<string> CreateMemberAsync(Member member)
+    public async Task<Response<string>> CreateMemberAsync(Member member)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"insert into members (fullName,phone,email,membershipDate)
                     values (@fullName,@phone,@email,@membershipDate)";
         var result = await connection.ExecuteAsync(sql, member);
-        return result > 0 ? "Member created successfully" : "Failed to create member";
+        if (result > 0)
+        {
+            return new Response<string>("Member created successfully", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Failed to create member");
     }
-    public async Task<string> UpdateMemberAsync(Member member)
+    public async Task<Response<string>> UpdateMemberAsync(Member member)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"update members set fullName=@fullName, phone=@phone, email=@email, membershipDate=@membershipDate
                     where id = @id";
         var result = await connection.ExecuteAsync(sql, member);
-        return result > 0 ? "Member updated successfully" : "Failed to update member";
+        if (result == 0)
+        {
+            return new Response<string>("Member not updated", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Member updated");
     }
-    public async Task<string> DeleteMemberAsync(int id)
+    public async Task<Response<string>> DeleteMemberAsync(int id)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"delete from members where id=@id";
         var result = await connection.ExecuteAsync(sql, new { id });
-        return result > 0 ? "Member deleted successfully" : "Failed to delete member";
+        if (result == 0)
+        {
+            return new Response<string>("Member not deleted", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Member deleted");
     }
-    public async Task<Book?> GetMostBorrowedBookAsync()
+    public async Task<Response<Book>> GetMostBorrowedBookAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select b.* from books b
@@ -56,9 +78,13 @@ public class MemberService(DataContext context) : IMemberService
             limit 1
         ) as top_book on b.id = topBook.bookId;";
         var result = await connection.QuerySingleOrDefaultAsync<Book>(sql);
-        return result;
+        if (result == null)
+        {
+            return new Response<Book>("Could't Get most Borrowing book", HttpStatusCode.NotFound);
+        }
+        return new Response<Book>(result, "Not founded");
     }
-    public async Task<Member?> GetFirstMemberWithOverdueReturnsAsync()
+    public async Task<Response<Member>> GetFirstMemberWithOverdueReturnsAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select m.* from members m
@@ -68,9 +94,13 @@ public class MemberService(DataContext context) : IMemberService
         order by br.dueDate asc
         limit 1;";
         var result = await connection.QueryFirstOrDefaultAsync<Member>(sql);
-        return result;
+        if (result == null)
+        {
+            return new Response<Member>("Could't Get first member with overdue returns", HttpStatusCode.NotFound);
+        }
+        return new Response<Member>(result, "Successfully founded");
     }
-    public async Task<List<Member>> GetTop5BorrowersAsync()
+    public async Task<Response<List<Member>>> GetTop5BorrowersAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -80,9 +110,13 @@ public class MemberService(DataContext context) : IMemberService
         order by borrowCount desc
         limit 5;";
         var result = await connection.QueryAsync<Member>(sql);
-        return result.ToList();
+        if (result == null)
+        {
+            return new Response<List<Member>>("Could't Get top 5 borrowers", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Member>>(result.ToList(), "Successfully founded");
     }
-    public async Task<List<Member>> GetMembersWithFinesAsync()
+    public async Task<Response<List<Member>>> GetMembersWithFinesAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -90,6 +124,10 @@ public class MemberService(DataContext context) : IMemberService
         join borrowings br on m.id = br.memberId
         where br.fine > 0;";
         var result = await connection.QueryAsync<Member>(sql);
-        return result.ToList();
+        if (result == null)
+        {
+            return new Response<List<Member>>("Could't Get members with fines", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Member>>(result.ToList(), "Successfully founded");
     }
 }

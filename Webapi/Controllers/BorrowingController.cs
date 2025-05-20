@@ -5,6 +5,7 @@ using Infrastructure.Data;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Infrastructure.Interface;
+using Domain.ApiResponse;
 
 namespace Webapi.Controllers;
 
@@ -13,62 +14,62 @@ namespace Webapi.Controllers;
 public class BorrowingController(IBorrowingService borrowingService)
 {
     [HttpGet]
-    public async Task<List<Borrowing>> GetAllBorrowingAsync()
+    public async Task<Response<List<Borrowing>>> GetAllBorrowingAsync()
     {
         return await borrowingService.GetAllBorrowingAsync();
     }
     [HttpGet("{id:int}")]
-    public async Task<Borrowing?> GetBorrowingByIdAsync(int id)
+    public async Task<Response<Borrowing>> GetBorrowingByIdAsync(int id)
     {
         return await borrowingService.GetBorrowingByIdAsync(id);
     }
     [HttpPost]
-    public async Task<string> CreateBorrowingAsync(Borrowing borrowing)
+    public async Task<Response<string>> CreateBorrowingAsync(Borrowing borrowing)
     {
         return await borrowingService.CreateBorrowingAsync(borrowing);
     }
     [HttpPut]
-    public async Task<string> UpdateBorrowingAsync(Borrowing borrowing)
+    public async Task<Response<string>> UpdateBorrowingAsync(Borrowing borrowing)
     {
         return await borrowingService.UpdateBorrowingAsync(borrowing);
     }
     [HttpDelete("{id:int}")]
-    public async Task<string> DeleteBorrowingAsync(int id)
+    public async Task<Response<string>> DeleteBorrowingAsync(int id)
     {
         return await borrowingService.DeleteBorrowingAsync(id);
     }
     [HttpGet("ReturnBook")]
-    public async Task<string> ReturnBookAsync(int id)
+    public async Task<Response<string>> ReturnBookAsync(int id)
     {
         return await borrowingService.ReturnBookAsync(id);
     }
     [HttpGet("GetTotalBorrowedBooks")]
-    public async Task<int> GetTotalBorrowedBooksAsync()
+    public async Task<Response<int>> GetTotalBorrowedBooksAsync()
     {
         return await borrowingService.GetTotalBorrowedBooksAsync();
     }
     [HttpGet("GetAverageFine")]
-    public async Task<decimal> GetAverageFineAsync()
+    public async Task<Response<decimal>> GetAverageFineAsync()
     {
         return await borrowingService.GetAverageFineAsync();
     }
     [HttpGet("GetNeverBorrowedBooksCount")]
-    public async Task<int> GetNeverBorrowedBooksCountAsync()
+    public async Task<Response<int>> GetNeverBorrowedBooksCountAsync()
     {
         return await borrowingService.GetNeverBorrowedBooksCountAsync();
     }
     [HttpGet("GetActiveBorrowersCount")]
-    public async Task<int> GetActiveBorrowersCountAsync()
+    public async Task<Response<int>> GetActiveBorrowersCountAsync()
     {
         return await borrowingService.GetActiveBorrowersCountAsync();
     }
     [HttpGet("GetTotalFines")]
-    public async Task<decimal> GetTotalFinesAsync()
+    public async Task<Response<decimal>> GetTotalFinesAsync()
     {
         return await borrowingService.GetTotalFinesAsync();
     }
     [HttpGet("GetCountOfLateReturns")]
-    public async Task<int> GetCountOfLateReturnsAsync()
+    public async Task<Response<int>> GetCountOfLateReturnsAsync()
     {
         return await borrowingService.GetCountOfLateReturnsAsync();
     }

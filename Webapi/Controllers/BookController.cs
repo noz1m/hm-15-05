@@ -4,6 +4,7 @@ using Infrastructure.Service;
 using Infrastructure.Data;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Domain.ApiResponse;
 
 namespace Webapi.Controllers;
 
@@ -12,47 +13,47 @@ namespace Webapi.Controllers;
 public class BookController(IBookService bookService)
 {
     [HttpGet]
-    public async Task<List<Book>> GetBooksAsync()
+    public async Task<Response<List<Book>>> GetBooksAsync()
     {
         return await bookService.GetAllBookAsync();
     }
     [HttpGet("{id:int}")]
-    public async Task<Book?> GetBookByIdAsync(int id)
+    public async Task<Response<Book>> GetBookByIdAsync(int id)
     {
         return await bookService.GetBookByIdAsync(id);
     }
     [HttpPost]
-    public async Task<string> CreateBookAsync(Book book)
+    public async Task<Response<string>> CreateBookAsync(Book book)
     {
         return await bookService.CreateBookAsync(book);
     }
     [HttpPut]
-    public async Task<string> UpdateBookAsync(Book book)
+    public async Task<Response<string>> UpdateBookAsync(Book book)
     {
         return await bookService.UpdateBookAsync(book);
     }
     [HttpDelete("{id:int}")]
-    public async Task<string> DeleteBookAsync(int id)
+    public async Task<Response<string>> DeleteBookAsync(int id)
     {
         return await bookService.DeleteBookAsync(id);
     }
     [HttpGet("GetMostBorrowedBook")]
-    public async Task<Book?> GetMostBorrowedBookAsync()
+    public async Task<Response<Book>> GetMostBorrowedBookAsync()
     {
         return await bookService.GetMostBorrowedBookAsync();
     }
     [HttpGet(" GetBorrowedBooks")]
-    public async Task<List<Book>> GetBorrowedBooksAsync()
+    public async Task<Response<List<Book>>> GetBorrowedBooksAsync()
     {
         return await bookService.GetBorrowedBooksAsync();
     }
     [HttpGet("GetUnavailableBooks")]
-    public async Task<List<Book>> GetUnavailableBooksAsync()
+    public async Task<Response<List<Book>>> GetUnavailableBooksAsync()
     {
         return await bookService.GetUnavailableBooksAsync();
     }
     [HttpGet("GetMostPopularGenre")]
-    public async Task<string> GetMostPopularGenreAsync()
+    public async Task<Response<string>> GetMostPopularGenreAsync()
     {
         return await bookService.GetMostPopularGenreAsync();
     }

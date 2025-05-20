@@ -2,49 +2,71 @@ using Domain.Entities;
 using Infrastructure.Interface;
 using Infrastructure.Data;
 using Dapper;
+using Domain.ApiResponse;
+using System.Net;
 
 namespace Infrastructure.Service;
 
 public class BookingService(DataContext context) : IBookService
 {
-    public async Task<List<Book>> GetAllBookAsync()
+    public async Task<Response<List<Book>>> GetAllBookAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from books";
         var result = await connection.QueryAsync<Book>(sql);
-        return result.ToList();
+        if (result == null)
+        {
+            return new Response<List<Book>>("Book not found", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Book>>(result.ToList(), "Book found");
     }
-    public async Task<Book?> GetBookByIdAsync(int id)
+    public async Task<Response<Book>> GetBookByIdAsync(int id)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select * from books where id = @id";
         var result = await connection.QueryFirstOrDefaultAsync<Book>(sql, new { id });
-        return result == null ? null : result;
+        if (result == null)
+        {
+            return new Response<Book>("Book not found", HttpStatusCode.NotFound);
+        }
+        return new Response<Book>(result, "Book found");
     }
-    public async Task<string> CreateBookAsync(Book book)
+    public async Task<Response<string>> CreateBookAsync(Book book)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"insert into books (title, genre, publicationYear, totalCopies, availableCopies) 
                     values (@title, @genre, @publicationYear, @totalCopies, @availableCopies)";
         var result = await connection.ExecuteAsync(sql, book);
-        return result > 0 ? "Book created successfully" : "Failed to create book";
+        if (result == 0)
+        {
+            return new Response<string>("Book not created", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Book created successfully");
     }
-    public async Task<string> UpdateBookAsync(Book book)
+    public async Task<Response<string>> UpdateBookAsync(Book book)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"update books set title=@title, genre=@genre, publicationYeaR=@publicationYear, totalCopies=@totalCopies, availableCopies=@availableCopies 
                     where id=@id";
         var result = await connection.ExecuteAsync(sql, book);
-        return result > 0 ? "Book updated successfully" : "Failed to update book";
+        if (result == 0)
+        {
+            return new Response<string>("Book not updated", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Book updated");
     }
-    public async Task<string> DeleteBookAsync(int id)
+    public async Task<Response<string>> DeleteBookAsync(int id)
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"delete from books where id=@id";
         var result = await connection.ExecuteAsync(sql, new { id });
-        return result > 0 ? "Book deleted successfully" : "Failed to delete book";
+        if (result == 0)
+        {
+            return new Response<string>("Book not deleted", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(null, "Book deleted");
     }
-    public async Task<Book?> GetMostBorrowedBookAsync()
+    public async Task<Response<Book>> GetMostBorrowedBookAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -56,18 +78,26 @@ public class BookingService(DataContext context) : IBookService
             limit 1
         ) as top_book on b.id = top_book.bookId;";
         var result = await connection.QuerySingleOrDefaultAsync<Book>(sql);
-        return result == null ? null : result;
+        if (result == null)
+        {
+            return new Response<Book>("Could't Get most Borrowing book", HttpStatusCode.NotFound);
+        }
+        return new Response<Book>(result, "Not founded");
     }
-    public async Task<List<Book>> GetBorrowedBooksAsync()
+    public async Task<Response<List<Book>>> GetBorrowedBooksAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"select b.* from books b
         join borrowings br on b.id = br.bookId
         where br.returnDate is null;";
-        var books = await connection.QueryAsync<Book>(sql);
-        return books.ToList();
+        var result = await connection.QueryAsync<Book>(sql);
+        if (result == null)
+        {
+            return new Response<List<Book>>("Could't Get Borrowed books", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Book>>(result.ToList(), "Successfully founded");
     }
-    public async Task<List<Book>> GetUnavailableBooksAsync()
+    public async Task<Response<List<Book>>> GetUnavailableBooksAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -76,10 +106,14 @@ public class BookingService(DataContext context) : IBookService
             select count(*)
             from borrowings br
             where br.bookId = b.id and br.returnDate is null);";
-        var books = await connection.QueryAsync<Book>(sql);
-        return books.ToList();
+        var result = await connection.QueryAsync<Book>(sql);
+        if (result == null)
+        {
+            return new Response<List<Book>>("Gould't Get Unavailable books", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Book>>(result.ToList(), "Successfully founded");
     }
-    public async Task<string?> GetMostPopularGenreAsync()
+    public async Task<Response<string>> GetMostPopularGenreAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -89,9 +123,13 @@ public class BookingService(DataContext context) : IBookService
         order by count(*) desc
         limit 1;";
         var result = await connection.QuerySingleOrDefaultAsync<string>(sql);
-        return result;
+        if (result == null)
+        {
+            return new Response<string>("Could't Get most popular genre", HttpStatusCode.NotFound);
+        }
+        return new Response<string>(result,"Successfully founded");
     }
-    public async Task<IEnumerable<Book>> GetBooksBorrowedMoreThan5TimesAsync()
+    public async Task<Response<List<Book>>> GetBooksBorrowedMoreThan5TimesAsync()
     {
         using var connection = await context.GetNpgsqlConnection();
         var sql = @"
@@ -102,7 +140,11 @@ public class BookingService(DataContext context) : IBookService
             group by bookId
             having count(*) > 5
         ) as popularBooks on b.id = popularBooks.bookId;";
-        var books = await connection.QueryAsync<Book>(sql);
-        return books;
+        var result = await connection.QueryAsync<Book>(sql);
+        if (result == null)
+        {
+            return new Response<List<Book>>("Could't Get book borrowed more than 5 times", HttpStatusCode.NotFound);
+        }
+        return new Response<List<Book>>(result.ToList(), "Successfully founded");
     }
 }
